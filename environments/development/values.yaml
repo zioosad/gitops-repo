@@ -1,0 +1,19 @@
+global:
+  environment: development
+  clusterName: dev-cluster
+  domain: dev.myapp.com
+
+monitoring:
+  enabled: true
+  retention: 24h
+
+logging:
+  level: DEBUG
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1apha1
+kind: ApplicationSet
+metadata:
+  name: multi-cluster-platform
+  namespace: argocd 
+spec:
+  generators:
+  - cluster: {}
+  template:
+    metadata:
+      name: 'platform-{{name}}'
+      labels:
+        type: platform
+        cluster: '{{name}}'
+        managed-by: applicationset
+      annotations:
+        argocd.argoproj.io/sync-wave: "-5"
+    spec:
+      project: platform
+      source:
+        repoURL: https://github.com/zioosad/gitops-repo.git
+        targetRevision: main
+        path: base
+        helm:
+          parameters:
+          - name: clusterName
+            value: '{{name}}'
+          - name: clusterEnv
+            value: '{{metadata.labels.enviroment}}'
+      destination:
+        server: '{{server}}'
+        namespace: platform-system
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=Foreground
+        retry:
+          limit: 3
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

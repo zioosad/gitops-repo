@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: microservices-multi-env
+  namespace: argocd
+spec:
+  generators:
+  - matrix:
+      generators:
+      - git:
+          repoURL: https://github.com/zioosad/gitops-repo.git
+          revision: main
+          directories:
+          - path: "microservices/*"
+      - list:
+          elements:
+          - environment: development
+            namespace: ms-dev
+            domain: dev.myapp.com
+            replicas: 1
+            syncWave: "1"
+            cpuRequest: "100m"
+            memoryRequest: "128Mi"
+          - environment: staging
+            namespace: ms-staging
+            domain: staging.myapp.com
+            replicas: 2
+            syncWave: "2"
+            cpuRequest: "200m"
+            memoryRequest: "256Mi"
+          - environment: production
+            namespace: ms-prod
+            domain: myapp.com
+            replicas: 3
+            syncWave: "3"
+            cpuRequest: "500m"
+            memoryRequest: "512Mi"
+
+  template:
+    metadata:
+      name: '{{path.basename}}-{{environment}}'
+      labels:
+        microservice: '{{path.basename}}'
+        environment: '{{environment}}'
+        team: platform
+        managed-by: applicationset
+      annotations:
+        argocd.argoproj.io/sync-wave: "{{syncWave}}"
+    spec:
+      project: microservices
+      source:
+        repoURL: https://github.com/zioosad/gitops-repo.git
+        targetRevision: main
+        path: 'microservices/{{path.basename}}/overlays/{{environment}}'
+        kustomize:
+          images:
+          - nginx:1.25
+          - node:18-alpine
+          - postgres:15
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - ApplyOutOfSyncOnly=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 5m

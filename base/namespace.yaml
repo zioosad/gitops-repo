@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: platform-system
+  labels:
+    name: platform-system
+    part-of: platform
+    managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ms-dev
+  labels:
+    environment: development
+    type: microservices
+    managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ms-staging
+  labels:
+    environment: staging
+    type: microservices
+    managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ms-prod
+  labels:
+    environment: production
+    type: microservices
+    managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra-dev
+  labels:
+    environment: development
+    type: infrastructure
+    managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra-staging
+  labels:
+    environment: staging
+    type: infrastructure
+    managed-by: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra-prod
+  labels:
+    environment: production
+    type: infrastructure
+    managed-by: argocd

@@ -1,0 +1,19 @@
+global:
+  environment: staging
+  clusterName: staging-cluster
+  domain: staging.myapp.com
+
+monitoring:
+  enabled: true
+  retention: 72h
+
+logging:
+  level: INFO
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: microservices-team
+  namespace: argocd
+spec:
+  description: Microservices Team Project
+  sourceRepos:
+  - 'https://github.com/zioosad/gitops-repo.git'
+  destinations:
+  - namespace: 'ms-*'
+    server: https://kubernetes.default.svc
+  namespaceResourceBlacklist:
+  - group: ''
+    kind: Secret
+  roles:
+  - name: developer
+    description: Microservices Developers
+    policies:
+    - p, proj:microservices-team:developer, applications, *, microservices-team/*, allow
+    groups:
+    - my-company:microservices-developers
+  - name: read-only
+    description: Read-only access
+    policies:
+    - p, proj:microservices-team:read-only, applications, get, microservices-team/*, allow
+    groups:
+    - my-company:developers

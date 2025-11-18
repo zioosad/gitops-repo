@@ -1,0 +1,25 @@
+global:
+  environment: production
+  clusterName: prod-cluster
+  domain: myapp.com
+
+monitoring:
+  enabled: true
+  retention: 720h
+
+logging:
+  level: WARN
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPU: 70

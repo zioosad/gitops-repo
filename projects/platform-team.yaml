@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-team
+  namespace: argocd
+spec:
+  description: Platform Team Project
+  sourceRepos:
+  - 'https://github.com/my-company/gitops-repo.git'
+  destinations:
+  - namespace: '*'
+    server: https://kubernetes.default.svc
+  - namespace: 'platform-system'
+    server: https://kubernetes.default.svc
+  - namespace: 'ms-*'
+    server: https://kubernetes.default.svc
+  - namespace: 'infra-*'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRole
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRoleBinding
+  roles:
+  - name: admin
+    description: Platform Administrators
+    policies:
+    - p, proj:platform-team:admin, applications, *, platform-team/*, allow
+    - p, proj:platform-team:admin, applications, override, platform-team/*, allow
+    groups:
+    - my-company:platform-admins
+  - name: developer
+    description: Platform Developers
+    policies:
+    - p, proj:platform-team:developer, applications, get, platform-team/*, allow
+    - p, proj:platform-team:developer, applications, sync, platform-team/*, allow
+    groups:
+    - my-company:platform-developers

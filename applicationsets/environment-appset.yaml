@@ -1,0 +1,50 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: environment-infrastructure
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - environment: development
+        namespace: infra-dev
+        domain: dev.myapp.com
+        syncWave: "-3"
+        cluster: https://dev-k8s.company.com
+      - environment: staging
+        namespace: infra-staging
+        domain: staging.myapp.com
+        syncWave: "-2"
+        cluster: https://staging-k8s.company.com
+      - environment: production
+        namespace: infra-prod
+        domain: myapp.com
+        syncWave: "-1"
+        cluster: https://prod-k8s.company.com
+
+  template:
+    metadata:
+      name: 'infrastructure-{{environment}}'
+      labels:
+        type: infrastructure
+        environment: '{{environment}}'
+        managed-by: applicationset
+      annotations:
+        argocd.argoproj.io/sync-wave: "{{syncWave}}"
+    spec:
+      project: infrastructure
+      source:
+        repoURL: https://github.com/zioosad/gitops-repo.git
+        targetRevision: main
+        path: environments/{{environment}}
+      destination:
+        server: '{{cluster}}'
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - PrunePropagationPolicy=Foreground

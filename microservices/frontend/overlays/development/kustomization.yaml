@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ms-dev
+
+bases:
+  - ../../base
+
+nameSuffix: -dev
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+
+configMapGenerator:
+  - name: frontend-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - FEATURE_FLAGS=debug,hot-reload,experimental
+      - API_TIMEOUT=60000
+
+commonLabels:
+  environment: development
+  track: canary
+
+images:
+  - name: my-registry/frontend
+    newTag: 1.0.0-dev

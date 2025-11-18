@@ -1,0 +1,15 @@
+# Ignore temporary files
+*.tmp
+*.log
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore sensitive files
+*secret*.yaml
+*password*
+*key*
+
+# Ignore kubeconfig files
+kubeconfig*

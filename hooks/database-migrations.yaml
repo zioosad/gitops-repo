@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: database-migrations
+  namespace: ms-prod
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrator
+        image: my-registry/backend-api:migrations-1.0.0
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: url
+        - name: MIGRATION_FILES_PATH
+          value: "/migrations"
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            echo "Starting database migrations for backend API..."
+            
+            # Check if migration already ran
+            if ./bin/check-migration v1.0.0; then
+              echo "Migration v1.0.0 already applied, skipping"
+              exit 0
+            fi
+            
+            # Run migration with retry logic
+            for i in 1 2 3; do
+              echo "Migration attempt $i..."
+              if ./bin/run-migrations; then
+                echo "Migrations completed successfully"
+                ./bin/record-migration v1.0.0
+                exit 0
+              fi
+              echo "Migration attempt $i failed, retrying in 10s..."
+              sleep 10
+            done
+            
+            echo "All migration attempts failed!"
+            exit 1
+        volumeMounts:
+        - name: migration-files
+          mountPath: /migrations
+      volumes:
+      - name: migration-files
+        configMap:
+          name: migration-scripts
+      restartPolicy: OnFailure
+  backoffLimit: 0

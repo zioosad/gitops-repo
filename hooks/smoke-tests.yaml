@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: smoke-tests
+  namespace: ms-prod
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  template:
+    spec:
+      containers:
+      - name: tester
+        image: my-registry/smoke-tests:latest
+        env:
+        - name: FRONTEND_URL
+          value: "http://frontend-service-prod.ms-prod.svc.cluster.local:80"
+        - name: BACKEND_URL
+          value: "http://backend-api-service-prod.ms-prod.svc.cluster.local:8080"
+        - name: PAYMENT_URL
+          value: "http://payment-service-prod.ms-prod.svc.cluster.local:8080"
+        - name: TEST_TIMEOUT
+          value: "300"
+        command: ["./bin/run-smoke-tests"]
+        args: 
+        - "--frontend"
+        - "$(FRONTEND_URL)"
+        - "--backend"
+        - "$(BACKEND_URL)"
+        - "--payment"
+        - "$(PAYMENT_URL)"
+        - "--timeout"
+        - "300"
+        - "--health-check"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      restartPolicy: Never
